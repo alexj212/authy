@@ -3,6 +3,7 @@
 export $(shell [ -f ".env" ] && sed 's/=.*//' .env)
 
 export BIN_DIR=./bin
+export RELEASE_DIR=./release
 export PROJ_PATH=github.com/alexj212/authy
 export APP_NAME=authy
 
@@ -15,7 +16,6 @@ export BUILT_ON_OS=$(shell uname -a)
 export LATEST_COMMIT := $(shell git log --pretty=format:'%h' -n 1 2> /dev/null)
 export COMMIT_CNT := $(shell git rev-list --all 2> /dev/null | wc -l | sed 's/ //g' )
 export BRANCH := $(shell git branch  2> /dev/null |grep -v "no branch"| grep \*|cut -d ' ' -f2)
-
 
 ifeq ($(BRANCH),)
 BRANCH := master
@@ -89,6 +89,9 @@ check_prereq: create_dir
 build_app: create_dir
 	go build -o $(BIN_DIR)/$(BIN_NAME) -a -ldflags '$(COMPILE_LDFLAGS)' $(APP_PATH)
 
+	## GOOS=linux GOARCH=arm   go build -o bin/main-linux-arm main.go
+	## GOOS=linux GOARCH=arm64 go build -o bin/main-linux-arm64 main.go
+
 
 authy: ## build_info ## build authy binary in bin dir
 	@echo "build authy"
@@ -96,6 +99,27 @@ authy: ## build_info ## build authy binary in bin dir
 	@echo ''
 	@echo ''
 
+
+build_release:
+	@mkdir -p $(RELEASE_DIR)
+	@echo ""
+	@echo ""
+	@echo "building release: $(RELEASE_DIR)/$(BIN_NAME)-$(GOOS)-$(GOARCH)$(BIN_EXTENSION)"
+	@echo ""
+	BIN_EXTENSION=$(BIN_EXTENSION) GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(RELEASE_DIR)/$(BIN_NAME)-$(GOOS)-$(GOARCH)$(BIN_EXTENSION) -a -ldflags '$(COMPILE_LDFLAGS)' $(APP_PATH)
+
+
+release_artifacts: ## build_info ## build release binaries into release dir
+	@rm -rf $(RELEASE_DIR)
+	@mkdir -p $(RELEASE_DIR)
+	@echo "build release artifacts"
+	make BIN_EXTENSION=     BIN_NAME=authy GOOS=linux   GOARCH=amd64 APP_PATH=$(PROJ_PATH) build_release
+	@echo ''
+	make BIN_EXTENSION=.exe BIN_NAME=authy GOOS=windows GOARCH=amd64 APP_PATH=$(PROJ_PATH) build_release
+	@echo ''
+	make BIN_EXTENSION=     BIN_NAME=authy GOOS=darwin  GOARCH=amd64 APP_PATH=$(PROJ_PATH) build_release
+	@echo ''
+	@echo ''
 
 ####################################################################################################################
 ##

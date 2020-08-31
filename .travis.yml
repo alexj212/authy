@@ -4,14 +4,39 @@ go:
   - 1.14.x
   - tip
 
+before_install:
+  - # skip
+
+install:
+  - # skip
+
 before_script:
   - go get -t -v github.com/alexj212/authy/...
 
 script:
-  - make authy
+  - make release_artifacts
+  - ls ./release
 
 notifications:
   email:
     recipients: alexj@backpocket.com
     on_success: change
     on_failure: always
+
+
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: $GITHUB_OAUTH_TOKEN
+
+  file:
+    - ./release/authy-darwin-amd64
+    - ./release/authy-linux-amd64
+    - ./release/authy-windows-amd64.exe
+
+  on:
+    # What to repository to build
+    repo: alexj212/authy
+    # Only build binaries for tagged commits
+    tags: true

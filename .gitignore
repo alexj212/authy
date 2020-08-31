@@ -17,7 +17,12 @@
 # vendor/
 
 go.sum
-.idea/
-.vscode
-bin/
 .env
+
+.vscode
+.idea/
+bin/
+release/
+
+input.txt
+travis.log
