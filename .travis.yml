@@ -1,0 +1,17 @@
+language: go
+
+go:
+  - 1.14.x
+  - tip
+
+before_script:
+  - go get -t -v github.com/alexj212/authy/...
+
+script:
+  - make authy
+
+notifications:
+  email:
+    recipients: alexj@backpocket.com
+    on_success: change
+    on_failure: always
