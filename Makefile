@@ -77,21 +77,17 @@ help: ## This help.
 ## Build of binaries
 ##
 ####################################################################################################################
-all: example test ## build example and run tests
+all: fmt check authy ## build example and run tests
 
-binaries: example ## build binaries in bin dir
+binaries: authy ## build binaries in bin dir
 
 create_dir:
 	@mkdir -p $(BIN_DIR)
 
 check_prereq: create_dir
-ifndef PACKR2_EXECUTABLE
-	go get -u github.com/gobuffalo/packr/v2/packr2
-endif
-	$(warning "found packr2")
 
 build_app: create_dir
-		packr2 build -o $(BIN_DIR)/$(BIN_NAME) -a -ldflags '$(COMPILE_LDFLAGS)' $(APP_PATH)
+	go build -o $(BIN_DIR)/$(BIN_NAME) -a -ldflags '$(COMPILE_LDFLAGS)' $(APP_PATH)
 
 
 authy: ## build_info ## build example binary in bin dir
@@ -107,7 +103,7 @@ authy: ## build_info ## build example binary in bin dir
 ##
 ####################################################################################################################
 
-clean_binaries: clean_example  ## clean all binaries in bin dir
+clean: clean_authy  ## clean all binaries in bin dir
 
 
 clean_binary: ## clean binary in bin dir
