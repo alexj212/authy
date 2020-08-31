@@ -38,12 +38,13 @@ var infoCmd = &cobra.Command{
 
 		fmt.Printf(
 			`Application build information
+  Version         : %s
   Build date      : %s
   Build number    : %s
   Git commit      : %s
   Runtime version : %s
   Built on OS     : %s
-`, BuildDate, BuildNumber, LatestCommit, RuntimeVer, BuiltOnOs)
+`, Version, BuildDate, BuildNumber, LatestCommit, RuntimeVer, BuiltOnOs)
 	},
 }
 

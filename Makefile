@@ -109,7 +109,7 @@ build_release:
 	BIN_EXTENSION=$(BIN_EXTENSION) GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o $(RELEASE_DIR)/$(BIN_NAME)-$(GOOS)-$(GOARCH)$(BIN_EXTENSION) -a -ldflags '$(COMPILE_LDFLAGS)' $(APP_PATH)
 
 
-release_artifacts: ## build_info ## build release binaries into release dir
+release_artifacts: ## build_info fmt check  ## build release binaries into release dir
 	@rm -rf $(RELEASE_DIR)
 	@mkdir -p $(RELEASE_DIR)
 	@echo "build release artifacts"

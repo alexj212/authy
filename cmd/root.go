@@ -29,7 +29,7 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "authy",
-	Short: "Authy command line too",
+	Short: "Authy command line tool",
 	Long:  `Authy command line tool`,
 
 	// Uncomment the following line if your bare application

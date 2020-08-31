@@ -31,16 +31,17 @@ import (
 	"strings"
 	"time"
 )
+
 const (
 	configFileName = ".authy.json"
-	cacheFileName = ".authycache.json"
+	cacheFileName  = ".authycache.json"
 )
-
-
 
 var verbose bool
 
 var (
+	// Version version tag
+	Version = "v0.1"
 	// BuildDate date string of when build was performed filled in by -X compile flag
 	BuildDate string
 
@@ -60,7 +61,6 @@ var (
 	RuntimeVer string
 )
 
-
 // DeviceRegistration authy account details
 type DeviceRegistration struct {
 	UserID       uint64 `json:"user_id,omitempty"`
@@ -69,7 +69,6 @@ type DeviceRegistration struct {
 	APIKey       string `json:"api_key,omitempty"`
 	MainPassword string `json:"main_password,omitempty"`
 }
-
 
 // Token save in cache
 type Token struct {
@@ -186,8 +185,6 @@ func getTokensFromAuthyServer(devInfo *DeviceRegistration) (tks []*Token, err er
 			fmt.Printf("AuthenticatorTokens: %v\n", v.Name)
 		}
 
-
-
 		tks = append(tks, &Token{
 			Name:         v.Name,
 			OriginalName: v.OriginalName,
@@ -264,9 +261,6 @@ func (tk *Token) GetTotpCode() (string, int) {
 	return code, secsLeft
 }
 
-
-
-
 // SaveDeviceInfo ..
 func SaveDeviceInfo(devInfo DeviceRegistration) (err error) {
 	regrPath, err := ConfigPath(configFileName)
@@ -320,8 +314,6 @@ func ConfigPath(fname string) (string, error) {
 
 	return filepath.Join(devPath, fname), nil
 }
-
-
 
 func newRegistrationDevice() (devInfo DeviceRegistration, err error) {
 	var (

@@ -20,6 +20,9 @@ import (
 )
 
 var (
+	// Version version tag
+	Version = "v0.1"
+
 	// BuildDate date string of when build was performed filled in by -X compile flag
 	BuildDate string
 
@@ -40,6 +43,7 @@ var (
 )
 
 func main() {
+	cmd.Version = Version
 	cmd.BuildDate = BuildDate
 	cmd.LatestCommit = LatestCommit
 	cmd.BuildNumber = BuildNumber

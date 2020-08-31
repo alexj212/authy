@@ -79,7 +79,7 @@ func registerOrGetDeviceInfo() {
 
 	fmt.Printf("\nLoaded %d auth tokens from authy server\n\n", len(tokens))
 	for _, v := range tokens {
-			fmt.Printf("Token: %s\n", v.Name)
-    }
+		fmt.Printf("Token: %s\n", v.Name)
+	}
 
 }
