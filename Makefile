@@ -77,7 +77,7 @@ help: ## This help.
 ## Build of binaries
 ##
 ####################################################################################################################
-all: fmt check authy ## build example and run tests
+all: fmt check authy ## build authy and run tests
 
 binaries: authy ## build binaries in bin dir
 
@@ -90,7 +90,7 @@ build_app: create_dir
 	go build -o $(BIN_DIR)/$(BIN_NAME) -a -ldflags '$(COMPILE_LDFLAGS)' $(APP_PATH)
 
 
-authy: ## build_info ## build example binary in bin dir
+authy: ## build_info ## build authy binary in bin dir
 	@echo "build authy"
 	make BIN_NAME=authy APP_PATH=$(PROJ_PATH) build_app
 	@echo ''

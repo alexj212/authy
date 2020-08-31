@@ -67,11 +67,10 @@ func listSearch(patternStr string) {
 		if os.IsNotExist(err) {
 			devInfo, err = newRegistrationDevice()
 			if err != nil {
-				fmt.Printf("error newRegistrationDevice: %v\n", err)
+				fmt.Printf("error getting RegistrationDevice: %v\n", err)
 				return
 			}
 		}
-		fmt.Printf("error newRegistrationDevice: %v\n", err)
 	}
 
 	tokens, err := loadCachedTokens()
