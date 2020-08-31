@@ -1,18 +1,18 @@
-/*
-Copyright © 2020 alexj@backpocket.com
+//
+// Copyright © 2020 alexj@backpocket.com
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
@@ -24,7 +24,6 @@ import (
 
 	"github.com/spf13/cobra"
 )
-
 
 // ./bin/authy exec PalVPN "/home/alexj/bin/vpnup.sh [AUTHCODE]"
 
@@ -49,8 +48,6 @@ First time(or after clean cache) , need your authy main password`,
 			cmd.Help()
 			return
 		}
-
-
 
 		dryRun, err := cmd.Flags().GetBool("dry-run")
 		if err != nil {
@@ -82,8 +79,7 @@ func fileExists(filename string) bool {
 	return !info.IsDir()
 }
 
-
-func execCmdRun(tokenName, script, replacementToken string, dryRun bool ) {
+func execCmdRun(tokenName, script, replacementToken string, dryRun bool) {
 
 	token, err := findToken(tokenName)
 	if err != nil {
@@ -101,14 +97,14 @@ func execCmdRun(tokenName, script, replacementToken string, dryRun bool ) {
 	var code string
 	var timeLeft int
 
-	for ok := true; ok; ok = timeLeft< MinTimeLeft {
+	for ok := true; ok; ok = timeLeft < MinTimeLeft {
 		code, timeLeft = token.GetTotpCode()
-		if !ok && verbose{
+		if !ok && verbose {
 			fmt.Printf("Got code but time left < %d\n", MinTimeLeft)
 		}
 	}
 
-	for i, val := range args{
+	for i, val := range args {
 		args[i] = strings.Replace(val, replacementToken, code, -1)
 	}
 
@@ -124,14 +120,14 @@ func execCmdRun(tokenName, script, replacementToken string, dryRun bool ) {
 		return
 	}
 	// construct `go version` command
-	cmdGoVer := &exec.Cmd {
-		Path: args[0],
-		Args: args,
+	cmdGoVer := &exec.Cmd{
+		Path:   args[0],
+		Args:   args,
 		Stdout: os.Stdout,
 		Stderr: os.Stdout,
 	}
 
 	if err := cmdGoVer.Run(); err != nil {
-		fmt.Println( "Error:", err );
+		fmt.Println("Error:", err)
 	}
 }

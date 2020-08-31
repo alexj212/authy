@@ -1,9 +1,23 @@
+//
+// Copyright © 2020 alexj@backpocket.com
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package totp
 
 import (
 	"crypto/hmac"
 	"crypto/sha1"
-	"errors"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -12,16 +26,16 @@ import (
 )
 
 const (
-	// INTERVAL 时间间隔
-	INTERVAL = 30
-	// PIN_MODULO
-	PIN_MODULO = 1000000
-	// DEFAULT_BASE32_STRING base32的字符串
-	DEFAULT_BASE32_STRING = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+	// Interval for totp tokens
+	Interval = 30
+	// PinModulo pin mod value
+	PinModulo = 1000000
+	// DefaultBase32String base 32 characters
+	DefaultBase32String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
 )
 
 var (
-	// ZerosOnRightModLookup
+	// ZerosOnRightModLookup lookup table for calculating number of trailing zeroes
 	// Integer.numberOfTrailingZeros
 	// http://stackoverflow.com/questions/5471129/number-of-trailing-zeros
 	// http://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightModLookup
@@ -31,15 +45,15 @@ var (
 	}
 )
 
-// Base32Decode base32 解码
+// Base32Decode struct
 type Base32Decode struct {
 	encode    string
 	decodeMap []byte
 }
 
-// DefaultNewBase32Decode 默认base32解码器
+// DefaultNewBase32Decode decoder
 func DefaultNewBase32Decode() *Base32Decode {
-	return NewBase32Decode("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567")
+	return NewBase32Decode(DefaultBase32String)
 }
 
 // NewBase32Decode 新建base32解码器
@@ -57,7 +71,7 @@ func NewBase32Decode(encode string) *Base32Decode {
 	return d
 }
 
-// Decode 解码
+// Decode Base 32 Decode of encoded string
 func (dec *Base32Decode) Decode(encoded string) ([]byte, error) {
 	encoded = strings.TrimSpace(encoded)
 	encoded = strings.Replace(encoded, "-", "", -1)
@@ -77,14 +91,14 @@ func (dec *Base32Decode) Decode(encoded string) ([]byte, error) {
 	for _, c := range encoded {
 		x := dec.decodeMap[c]
 		if x == 0xFF {
-			return nil, errors.New(fmt.Sprintf("Char illegal: %c", c))
+			return nil, fmt.Errorf("char illegal: %c", c)
 		}
 		buffer <<= SHIFT
 		buffer |= int(x) & MASK
 		bitsLeft += int(SHIFT)
 		if bitsLeft >= 8 {
 			result[next] = byte(buffer >> uint(bitsLeft-8))
-			next += 1
+			next++
 			bitsLeft -= 8
 		}
 	}
@@ -119,9 +133,9 @@ func getCurrentTimeMillis() int64 {
 	return time.Now().UnixNano() / 1000 / 1000
 }
 
-// GetChallenge 获取时间token
+// GetChallenge value
 func GetChallenge() int64 {
-	return getCurrentTimeMillis() / 1000 / INTERVAL
+	return getCurrentTimeMillis() / 1000 / Interval
 }
 
 // GenerateResponseCode 生成密码
@@ -140,7 +154,7 @@ func GenerateResponseCode(secret string, challenge int64, codeLength int) (strin
 
 	offset := int(hash[len(hash)-1] & 0x0F)
 	truncatedHash := hashToInt(hash, offset) & 0x7FFFFFFF
-	pinValue := int(truncatedHash % PIN_MODULO)
+	pinValue := int(truncatedHash % PinModulo)
 	code := strconv.Itoa(pinValue)
 
 	if len(code) >= codeLength {
@@ -152,7 +166,7 @@ func GenerateResponseCode(secret string, challenge int64, codeLength int) (strin
 
 // NewTotpToken 新生成token
 func NewTotpToken(length int) string {
-	defaultBase32Decode := NewBase32Decode(DEFAULT_BASE32_STRING)
+	defaultBase32Decode := NewBase32Decode(DefaultBase32String)
 	rand.Seed(time.Now().UnixNano())
 	var (
 		num int

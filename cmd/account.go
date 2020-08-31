@@ -1,18 +1,18 @@
-/*
-Copyright © 2020 c@gmail.com
+//
+// Copyright © 2020 alexj@backpocket.com
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
@@ -53,7 +53,8 @@ const (
 	configFileName = ".authy.json"
 )
 
-type deviceRegistration struct {
+// DeviceRegistration authy account details
+type DeviceRegistration struct {
 	UserID       uint64 `json:"user_id,omitempty"`
 	DeviceID     uint64 `json:"device_id,omitempty"`
 	Seed         string `json:"seed,omitempty"`
@@ -93,7 +94,7 @@ func registerOrGetDeviceInfo() {
 	}
 }
 
-func newRegistrationDevice() (devInfo deviceRegistration, err error) {
+func newRegistrationDevice() (devInfo DeviceRegistration, err error) {
 	var (
 		sc      = bufio.NewScanner(os.Stdin)
 		phoneCC int
@@ -201,7 +202,7 @@ func newRegistrationDevice() (devInfo deviceRegistration, err error) {
 		return
 	}
 
-	devInfo = deviceRegistration{
+	devInfo = DeviceRegistration{
 		UserID:   regComplete.AuthyID,
 		DeviceID: regComplete.Device.ID,
 		Seed:     regComplete.Device.SecretSeed,
@@ -217,7 +218,7 @@ func newRegistrationDevice() (devInfo deviceRegistration, err error) {
 }
 
 // SaveDeviceInfo ..
-func SaveDeviceInfo(devInfo deviceRegistration) (err error) {
+func SaveDeviceInfo(devInfo DeviceRegistration) (err error) {
 	regrPath, err := ConfigPath(configFileName)
 	if err != nil {
 		return
@@ -234,7 +235,7 @@ func SaveDeviceInfo(devInfo deviceRegistration) (err error) {
 }
 
 // LoadExistingDeviceInfo ,,,
-func LoadExistingDeviceInfo() (devInfo deviceRegistration, err error) {
+func LoadExistingDeviceInfo() (devInfo DeviceRegistration, err error) {
 	devPath, err := ConfigPath(configFileName)
 	if err != nil {
 		log.Println("Get device info file path failed", err)

@@ -135,7 +135,8 @@ lint: ## run lint on the project
 	golint ./...
 
 staticcheck: ## run staticcheck on the project
-	staticcheck -ignore "$(shell cat .checkignore)" .
+## staticcheck -ignore "$(shell cat .checkignore)" .
+	staticcheck .
 
 vet: ## run go vet on the project
 	go vet .
@@ -145,3 +146,8 @@ tools: ## install dependent tools for code analysis
 	go get -u github.com/gordonklaus/ineffassign
 	go get -u github.com/fzipp/gocyclo
 	go get -u golang.org/x/lint/golint
+
+gocyclo: ## run gocyclo on the project
+	@ gocyclo -over 20 $(shell find . -name "*.go" |egrep -v "pb\.go|_test\.go")
+
+check: staticcheck gocyclo ## run code checks on the project

@@ -1,3 +1,18 @@
+//
+// Copyright © 2020 alexj@backpocket.com
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package cmd
 
 import (
@@ -37,8 +52,6 @@ var (
 	RuntimeVer string
 )
 
-
-
 // Token save in cache
 type Token struct {
 	Name         string `json:"name"`
@@ -48,10 +61,10 @@ type Token struct {
 	Period       int    `json:"period"`
 }
 
-
-
+// Tokens type for results of search etc
 type Tokens []*Token
 
+// String return token name of results index
 func (ts Tokens) String(i int) string {
 	if len(ts[i].Name) > len(ts[i].OriginalName) {
 		return ts[i].Name
@@ -60,11 +73,8 @@ func (ts Tokens) String(i int) string {
 	return ts[i].OriginalName
 }
 
+// Len - number of Token results
 func (ts Tokens) Len() int { return len(ts) }
-
-
-
-
 
 func loadCachedTokens() (tks []*Token, err error) {
 	fpath, err := ConfigPath(cacheFileName)
@@ -99,20 +109,17 @@ func saveTokens(tks []*Token) (err error) {
 	defer f.Close()
 	err = json.NewEncoder(f).Encode(tks)
 
-
 	if err != nil {
 		fmt.Printf("Error saving tokens: %v\n", err)
 		return
 	}
-	if verbose{
+	if verbose {
 		fmt.Printf("Saved tokens to file: %v\n", regrPath)
 	}
 	return
 }
 
-
-
-func getTokensFromAuthyServer(devInfo *deviceRegistration) (tks []*Token, err error) {
+func getTokensFromAuthyServer(devInfo *DeviceRegistration) (tks []*Token, err error) {
 	client, err := authy.NewClient()
 	if err != nil {
 		log.Fatalf("Create authy API client failed %+v", err)
@@ -188,9 +195,6 @@ func getTokensFromAuthyServer(devInfo *deviceRegistration) (tks []*Token, err er
 	return
 }
 
-
-
-
 func findToken(tokenName string) (*Token, error) {
 	devInfo, err := LoadExistingDeviceInfo()
 	if err != nil {
@@ -228,6 +232,7 @@ func findToken(tokenName string) (*Token, error) {
 	return tk, nil
 }
 
+// GetTotpCode return code and # of seconds left in current code
 func (tk *Token) GetTotpCode() (string, int) {
 	codes := totp.GetTotpCode(tk.Secret, tk.Digital)
 	challenge := totp.GetChallenge()
