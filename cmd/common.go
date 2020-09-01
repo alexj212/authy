@@ -94,34 +94,40 @@ func (ts Tokens) String(i int) string {
 // Len - number of Token results
 func (ts Tokens) Len() int { return len(ts) }
 
-func loadCachedTokens() (tokens []*Token, err error) {
+func loadCachedTokens() ([]*Token, error) {
 	fpath, err := ConfigPath(cacheFileName)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	f, err := os.Open(fpath)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	defer f.Close()
+
+	tokens := []*Token{}
 	err = json.NewDecoder(f).Decode(tokens)
+	if err != nil {
+		return nil, err
+	}
+
 	if verbose {
 		fmt.Printf("Loaded cached providers from %v\n", fpath)
 	}
-	return
+	return tokens, err
 }
 
-func saveTokens(tks []*Token) (err error) {
+func saveTokens(tks []*Token) error {
 	regrPath, err := ConfigPath(cacheFileName)
 	if err != nil {
-		return
+		return err
 	}
 
 	f, err := os.OpenFile(regrPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 	if err != nil {
-		return
+		return err
 	}
 
 	defer f.Close()
@@ -129,12 +135,12 @@ func saveTokens(tks []*Token) (err error) {
 
 	if err != nil {
 		fmt.Printf("Error saving tokens: %v\n", err)
-		return
+		return err
 	}
 	if verbose {
 		fmt.Printf("Saved tokens to file: %v\n", regrPath)
 	}
-	return
+	return nil
 }
 
 func getTokensFromAuthyServer(devInfo *DeviceRegistration) ([]*Token, error) {
@@ -295,6 +301,7 @@ func ConfigPath(fname string) (string, error) {
 
 	return filepath.Join(devPath, fname), nil
 }
+
 func promptAccountInfo() (phoneCC int, mobile string, err error) {
 	var (
 		sc = bufio.NewScanner(os.Stdin)

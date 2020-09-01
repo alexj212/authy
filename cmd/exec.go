@@ -116,8 +116,9 @@ func execCmdRun(tokenName, script, replacementToken string, dryRun bool) {
 		fmt.Printf("code: %v\n", code)
 		fmt.Printf("timeLeft: %v\n", timeLeft)
 		fmt.Printf("orig script: %v\n", script)
-		fmt.Printf("script: [%v]\n", strings.Join(args, " "))
 	}
+
+	fmt.Printf("script: [%v]\n", strings.Join(args, " "))
 
 	if dryRun {
 		fmt.Printf("dry run exiting\n")
