@@ -1,5 +1,5 @@
 ## Authy
-[![License](https://img.shields.io/badge/License-Apache%203.0-blue.svg)](https://opensource.org/licenses/Apache-3.0) [![GoDoc](https://godoc.org/github.com/alexj212/authy?status.png)](http://godoc.org/github.com/alexj212/authy)  [![travis](https://travis-ci.org/alexj212/authy.svg?branch=master)](https://travis-ci.org/alexj212/authy) [![Go Report Card](https://goreportcard.com/badge/github.com/alexj212/authy)](https://goreportcard.com/report/github.com/alexj212/authy)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-3.0) [![GoDoc](https://godoc.org/github.com/alexj212/authy?status.png)](http://godoc.org/github.com/alexj212/authy)  [![travis](https://travis-ci.org/alexj212/authy.svg?branch=master)](https://travis-ci.org/alexj212/authy) [![Go Report Card](https://goreportcard.com/badge/github.com/alexj212/authy)](https://goreportcard.com/report/github.com/alexj212/authy)
 
 
 Authy Commandline Tool
