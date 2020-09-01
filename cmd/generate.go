@@ -49,8 +49,12 @@ func init() {
 }
 
 func generateCmdRun(tokenName string) {
+	_, tokens, err := Initialize()
+	if err != nil {
+		return
+	}
 
-	token, err := findToken(tokenName)
+	token, err := findToken(tokens, tokenName)
 	if err != nil {
 		fmt.Printf("Error unable to find token: %v\n", err)
 		return

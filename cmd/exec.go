@@ -80,8 +80,12 @@ func fileExists(filename string) bool {
 }
 
 func execCmdRun(tokenName, script, replacementToken string, dryRun bool) {
+	_, tokens, err := Initialize()
+	if err != nil {
+		return
+	}
 
-	token, err := findToken(tokenName)
+	token, err := findToken(tokens, tokenName)
 	if err != nil {
 		fmt.Printf("Error unable to find token: %v\n", err)
 		return
@@ -108,11 +112,11 @@ func execCmdRun(tokenName, script, replacementToken string, dryRun bool) {
 		args[i] = strings.Replace(val, replacementToken, code, -1)
 	}
 
-	if verbose {
+	if dryRun || verbose {
 		fmt.Printf("code: %v\n", code)
 		fmt.Printf("timeLeft: %v\n", timeLeft)
-		fmt.Printf("script: %v\n", script)
-		fmt.Printf("args: [%v]\n", strings.Join(args, ","))
+		fmt.Printf("orig script: %v\n", script)
+		fmt.Printf("script: [%v]\n", strings.Join(args, " "))
 	}
 
 	if dryRun {

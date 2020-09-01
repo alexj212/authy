@@ -36,7 +36,7 @@ func init() {
 }
 
 func deleteDevInfoPassword(cmd *cobra.Command, args []string) {
-	devInfo, err := LoadExistingDeviceInfo()
+	devInfo, _, err := Initialize()
 	if err != nil {
 		log.Fatal("Load device info failed", err)
 	}

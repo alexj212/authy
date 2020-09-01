@@ -21,7 +21,7 @@ import (
 
 var (
 	// Version version tag
-	Version = "v0.11"
+	Version = "v0.12"
 
 	// BuildDate date string of when build was performed filled in by -X compile flag
 	BuildDate string

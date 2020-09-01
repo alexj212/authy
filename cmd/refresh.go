@@ -29,12 +29,12 @@ var refreshCmd = &cobra.Command{
 
 You can use this cmd to refresh local token cache`,
 	Run: func(cmd *cobra.Command, args []string) {
-		devInfo, err := LoadExistingDeviceInfo()
+		devInfo, _, err := Initialize()
 		if err != nil {
 			log.Fatal("Load device info failed", err)
 		}
 
-		getTokensFromAuthyServer(&devInfo)
+		getTokensFromAuthyServer(devInfo)
 	},
 }
 

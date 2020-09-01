@@ -18,8 +18,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"log"
-	"os"
 )
 
 // accountCmd represents the account command
@@ -48,33 +46,9 @@ func init() {
 }
 
 func registerOrGetDeviceInfo() {
-	devInfo, err := LoadExistingDeviceInfo()
-	if err == nil {
-		log.Println("device info found")
-		log.Printf("%+v\n", devInfo)
-		return
-	}
-
-	if os.IsNotExist(err) {
-		devInfo, err = newRegistrationDevice()
-		if err != nil {
-			log.Printf("Registration Device failed error: %+v\n", err)
-			os.Exit(1)
-		}
-		log.Println("Register device success!!!")
-		log.Printf("Your device info: %+v\n", devInfo)
-	} else if err != nil {
-		log.Println("Load device info failed", err)
-		return
-	}
-
-	tokens, err := loadCachedTokens()
+	_, tokens, err := Initialize()
 	if err != nil {
-		tokens, err = getTokensFromAuthyServer(&devInfo)
-		if err != nil {
-			fmt.Printf("error getTokensFromAuthyServer: %v\n", err)
-			return
-		}
+		return
 	}
 
 	fmt.Printf("\nLoaded %d auth tokens from authy server\n\n", len(tokens))

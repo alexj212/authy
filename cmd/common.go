@@ -94,7 +94,7 @@ func (ts Tokens) String(i int) string {
 // Len - number of Token results
 func (ts Tokens) Len() int { return len(ts) }
 
-func loadCachedTokens() (tks []*Token, err error) {
+func loadCachedTokens() (tokens []*Token, err error) {
 	fpath, err := ConfigPath(cacheFileName)
 	if err != nil {
 		return
@@ -106,7 +106,7 @@ func loadCachedTokens() (tks []*Token, err error) {
 	}
 
 	defer f.Close()
-	err = json.NewDecoder(f).Decode(tks)
+	err = json.NewDecoder(f).Decode(tokens)
 	if verbose {
 		fmt.Printf("Loaded cached providers from %v\n", fpath)
 	}
@@ -137,7 +137,7 @@ func saveTokens(tks []*Token) (err error) {
 	return
 }
 
-func getTokensFromAuthyServer(devInfo *DeviceRegistration) (tks []*Token, err error) {
+func getTokensFromAuthyServer(devInfo *DeviceRegistration) ([]*Token, error) {
 	client, err := authy.NewClient()
 	if err != nil {
 		log.Fatalf("Create authy API client failed %+v", err)
@@ -152,13 +152,13 @@ func getTokensFromAuthyServer(devInfo *DeviceRegistration) (tks []*Token, err er
 		log.Fatalf("Fetch authenticator apps failed %+v", apps)
 	}
 
-	tokens, err := client.QueryAuthenticatorTokens(nil, devInfo.UserID, devInfo.DeviceID, devInfo.Seed)
+	tokensResponse, err := client.QueryAuthenticatorTokens(nil, devInfo.UserID, devInfo.DeviceID, devInfo.Seed)
 	if err != nil {
 		log.Fatalf("Fetch authenticator tokens failed %+v", err)
 	}
 
-	if !tokens.Success {
-		log.Fatalf("Fetch authenticator tokens failed %+v", tokens)
+	if !tokensResponse.Success {
+		log.Fatalf("Fetch authenticator tokens failed %+v", tokensResponse)
 	}
 
 	if len(devInfo.MainPassword) == 0 {
@@ -169,15 +169,15 @@ func getTokensFromAuthyServer(devInfo *DeviceRegistration) (tks []*Token, err er
 		}
 
 		devInfo.MainPassword = strings.TrimSpace(string(pp))
-		SaveDeviceInfo(*devInfo)
+		SaveDeviceInfo(devInfo)
 	}
 
-	tks = []*Token{}
-	for _, v := range tokens.AuthenticatorTokens {
+	tks := []*Token{}
+	for _, v := range tokensResponse.AuthenticatorTokens {
 		secret, err := v.Decrypt(devInfo.MainPassword)
 		if err != nil {
 			devInfo.MainPassword = ""
-			SaveDeviceInfo(*devInfo)
+			SaveDeviceInfo(devInfo)
 			log.Fatalf("Decrypt token failed %+v", err)
 		}
 
@@ -211,31 +211,10 @@ func getTokensFromAuthyServer(devInfo *DeviceRegistration) (tks []*Token, err er
 	}
 
 	saveTokens(tks)
-	return
+	return tks, nil
 }
 
-func findToken(tokenName string) (*Token, error) {
-	devInfo, err := LoadExistingDeviceInfo()
-	if err != nil {
-		if os.IsNotExist(err) {
-			devInfo, err = newRegistrationDevice()
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
-	}
-
-	tokens, err := loadCachedTokens()
-	if err != nil {
-		tokens, err = getTokensFromAuthyServer(&devInfo)
-		if err != nil {
-			err = errors.Wrap(err, "unable to getTokensFromAuthyServer")
-			return nil, err
-		}
-	}
-
+func findToken(tokens []*Token, tokenName string) (*Token, error) {
 	var tk *Token
 	for _, v := range tokens {
 		if tokenName == v.Name {
@@ -245,7 +224,7 @@ func findToken(tokenName string) (*Token, error) {
 	}
 
 	if tk == nil {
-		err = errors.Errorf("unable to find token: %s", tokenName)
+		err := errors.Errorf("unable to find token: %s", tokenName)
 		return nil, err
 	}
 	return tk, nil
@@ -262,15 +241,15 @@ func (tk *Token) GetTotpCode() (string, int) {
 }
 
 // SaveDeviceInfo ..
-func SaveDeviceInfo(devInfo DeviceRegistration) (err error) {
+func SaveDeviceInfo(devInfo *DeviceRegistration) error {
 	regrPath, err := ConfigPath(configFileName)
 	if err != nil {
-		return
+		return err
 	}
 
 	f, err := os.OpenFile(regrPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 	if err != nil {
-		return
+		return err
 	}
 
 	defer f.Close()
@@ -278,11 +257,11 @@ func SaveDeviceInfo(devInfo DeviceRegistration) (err error) {
 	if verbose {
 		fmt.Printf("Save device info to file: %s\n", regrPath)
 	}
-	return
+	return nil
 }
 
 // LoadExistingDeviceInfo ,,,
-func LoadExistingDeviceInfo() (devInfo DeviceRegistration, err error) {
+func LoadExistingDeviceInfo() (*DeviceRegistration, error) {
 	devPath, err := ConfigPath(configFileName)
 	if err != nil {
 		log.Println("Get device info file path failed", err)
@@ -291,18 +270,20 @@ func LoadExistingDeviceInfo() (devInfo DeviceRegistration, err error) {
 
 	f, err := os.Open(devPath)
 	if err != nil {
-		return
+		return nil, err
 	}
 	defer f.Close()
-
-	err = json.NewDecoder(f).Decode(&devInfo)
-
-	if err == nil {
-		if verbose {
-			fmt.Printf("Loaded device info from file: %s\n", configFileName)
-		}
+	devInfo := &DeviceRegistration{}
+	err = json.NewDecoder(f).Decode(devInfo)
+	if err != nil {
+		return nil, err
 	}
-	return
+
+	if verbose {
+		fmt.Printf("Loaded device info from file: %s\n", configFileName)
+	}
+
+	return devInfo, nil
 }
 
 // ConfigPath get config file path
@@ -314,11 +295,9 @@ func ConfigPath(fname string) (string, error) {
 
 	return filepath.Join(devPath, fname), nil
 }
-
-func newRegistrationDevice() (devInfo DeviceRegistration, err error) {
+func promptAccountInfo() (phoneCC int, mobile string, err error) {
 	var (
-		sc      = bufio.NewScanner(os.Stdin)
-		phoneCC int
+		sc = bufio.NewScanner(os.Stdin)
 	)
 
 	if len(countrycode) == 0 {
@@ -348,38 +327,46 @@ func newRegistrationDevice() (devInfo DeviceRegistration, err error) {
 
 		mobile = sc.Text()
 	}
-
 	mobile = strings.TrimSpace(mobile)
+	return
+}
+
+func newRegistrationDevice() (*DeviceRegistration, error) {
+
+	phoneCC, mobile, err := promptAccountInfo()
+	if err != nil {
+		return nil, err
+	}
 
 	client, err := authy.NewClient()
 	if err != nil {
 		log.Println("New authy client failed", err)
-		return
+		return nil, err
 	}
 
 	userStatus, err := client.QueryUser(nil, phoneCC, mobile)
 	if err != nil {
 		log.Println("Query user failed", err)
-		return
+		return nil, err
 	}
 
 	if !userStatus.IsActiveUser() {
 		err = errors.New("There doesn't seem to be an Authy account attached to that phone number")
 		log.Println(err)
-		return
+		return nil, err
 	}
 
 	// Begin a device registration using Authy app push notification
 	regStart, err := client.RequestDeviceRegistration(nil, userStatus.AuthyID, authy.ViaMethodPush)
 	if err != nil {
 		log.Println("Start register device failed", err)
-		return
+		return nil, err
 	}
 
 	if !regStart.Success {
 		err = fmt.Errorf("Authy did not accept the device registration request: %+v", regStart)
 		log.Println(err)
-		return
+		return nil, err
 	}
 
 	var regPIN string
@@ -388,7 +375,7 @@ func newRegistrationDevice() (devInfo DeviceRegistration, err error) {
 		if timeout.Before(time.Now()) {
 			err = errors.New("Gave up waiting for user to respond to Authy device registration request")
 			log.Println(err)
-			return
+			return nil, err
 		}
 
 		log.Printf("Checking device registration status (%s until we give up)", time.Until(timeout).Truncate(time.Second))
@@ -397,7 +384,7 @@ func newRegistrationDevice() (devInfo DeviceRegistration, err error) {
 		if err1 != nil {
 			err = err1
 			log.Println(err)
-			return
+			return nil, err
 		}
 		if regStatus.Status == "accepted" {
 			regPIN = regStatus.PIN
@@ -405,7 +392,7 @@ func newRegistrationDevice() (devInfo DeviceRegistration, err error) {
 		} else if regStatus.Status != "pending" {
 			err = fmt.Errorf("Invalid status while waiting for device registration: %s", regStatus.Status)
 			log.Println(err)
-			return
+			return nil, err
 		}
 
 		time.Sleep(5 * time.Second)
@@ -414,28 +401,20 @@ func newRegistrationDevice() (devInfo DeviceRegistration, err error) {
 	regComplete, err := client.CompleteDeviceRegistration(nil, userStatus.AuthyID, regPIN)
 	if err != nil {
 		log.Println(err)
-		return
+		return nil, err
 	}
 
 	if regComplete.Device.SecretSeed == "" {
 		err = errors.New("Something went wrong completing the device registration")
 		log.Println(err)
-		return
+		return nil, err
 	}
 
-	devInfo = DeviceRegistration{
+	devInfo := &DeviceRegistration{
 		UserID:   regComplete.AuthyID,
 		DeviceID: regComplete.Device.ID,
 		Seed:     regComplete.Device.SecretSeed,
 		APIKey:   regComplete.Device.APIKey,
-	}
-
-	if verbose {
-		fmt.Printf("APIKey       : %v\n", devInfo.APIKey)
-		fmt.Printf("DeviceID     : %v\n", devInfo.DeviceID)
-		fmt.Printf("MainPassword : %v\n", devInfo.MainPassword)
-		fmt.Printf("UserID       : %v\n", devInfo.UserID)
-		fmt.Printf("Seed         : %v\n", devInfo.Seed)
 	}
 
 	err = SaveDeviceInfo(devInfo)
@@ -443,5 +422,36 @@ func newRegistrationDevice() (devInfo DeviceRegistration, err error) {
 		log.Println("Save device info failed", err)
 	}
 
-	return
+	return devInfo, nil
+}
+
+// Initialize initialize device info and cached tokens
+func Initialize() (*DeviceRegistration, []*Token, error) {
+
+	devInfo, err := LoadExistingDeviceInfo()
+
+	if err != nil && os.IsNotExist(err) {
+		devInfo, err = newRegistrationDevice()
+		if err != nil {
+			log.Printf("Registration Device failed error: %+v\n", err)
+			return nil, nil, err
+		}
+		log.Println("Register device success!!!")
+		log.Printf("Your device info: %+v\n", devInfo)
+	} else if err != nil {
+		log.Printf("Load device info failed %v", err)
+		return nil, nil, err
+	}
+
+	tokens, err := loadCachedTokens()
+	if err != nil {
+		tokens, err = getTokensFromAuthyServer(devInfo)
+		if err != nil {
+			fmt.Printf("error getTokensFromAuthyServer: %v\n", err)
+			return nil, nil, err
+		}
+	}
+
+	fmt.Printf("\nLoaded %d auth tokens from authy server\n\n", len(tokens))
+	return devInfo, tokens, nil
 }

@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 
 	//"time"
@@ -62,24 +61,9 @@ func listSearch(patternStr string) {
 		return
 	}
 
-	devInfo, err := LoadExistingDeviceInfo()
+	_, tokens, err := Initialize()
 	if err != nil {
-		if os.IsNotExist(err) {
-			devInfo, err = newRegistrationDevice()
-			if err != nil {
-				fmt.Printf("error getting RegistrationDevice: %v\n", err)
-				return
-			}
-		}
-	}
-
-	tokens, err := loadCachedTokens()
-	if err != nil {
-		tokens, err = getTokensFromAuthyServer(&devInfo)
-		if err != nil {
-			fmt.Printf("error getTokensFromAuthyServer: %v\n", err)
-			return
-		}
+		return
 	}
 
 	found := false

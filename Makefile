@@ -168,6 +168,6 @@ tools: ## install dependent tools for code analysis
 	go get -u golang.org/x/lint/golint
 
 gocyclo: ## run gocyclo on the project
-	@ gocyclo -over 20 $(shell find . -name "*.go" |egrep -v "pb\.go|_test\.go")
+	@ gocyclo -over 15 $(shell find . -name "*.go" |egrep -v "pb\.go|_test\.go")
 
 check: staticcheck gocyclo ## run code checks on the project
